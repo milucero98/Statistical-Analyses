@@ -1,0 +1,138 @@
+---
+title: "Simple Linear Regression"
+output: 
+  html_document:
+    theme: cerulean
+    code_folding: hide
+---
+```{r, include=FALSE}
+# Be sure to use your file menus at the top of R-Studio to:
+# "Session -> Set working directory -> To source file location"
+# Then play this chunk and the next one to get the data into R.
+library(mosaic)
+library(car)
+library(DT)
+library(pander)
+library(readr)
+myurl2<-"https://docs.google.com/spreadsheets/d/e/2PACX-1vT7S1bYi7kLFtbrLiL-Z3RjzIbtquluGfrh_PFqfL3acgXpw4ZcIOVRTYTqLo94CkxjHnXDLAEtEE71/pub?gid=1935097127&single=true&output=csv"
+CRV2<-read.csv(url(myurl2))
+```
+---
+
+<!-- Critiques
+
+Critiques Taken: C1=Critiquer #1, C2=Critiquer #2
+ 
+C1.1 Quick typo fixes: 
+?the following mathematical model will accurately depict their relationhip(relationship)?
+
+C1.2 ?Given that the p-value(0.005397) is less than zero?? Is your significance level 0? If so this p-value isn?t less than 0? I think you meant either 0.1 or 0.05. 
+
+C1.3 If you pander your summary it will look a lot nicer.
+
+C1.4 So what is your final conclusion? Should we trust this test or not?
+ 
+C2.1 You state "it seems reasonable to assume that the lower mileage associated with a vehicle the lower the price of the vehicle would be." Think you meant to say higher, not lower. 
+
+C2.2 I'd maybe explain the Linear Regression model to 'dumb it down" for those who may not understand. Explain that, from your graph, a vehicle that just rolled out of a dealership with 0 miles would be $54901.8827. 
+
+C2.3 Put pander() around your whole summary so it will look much more clean
+
+C2.4 Mention the variance in your last graph to also come to a conclusion 
+ 
+Critiques Ignored:
+
+C1.1 Typo: ?relation between mileage and priceshould be? Just missing a space between words here.
+
+
+-->
+
+
+## Background {.tabset .tabset-fade}
+
+### Overview
+Data was collected on the price and mileage of 30 Honda CRVs. It seems reasonable to assume that the higher mileage associated with a vehicle the lower the price of the vehicle would be. Data was collected both to see if this was true or not, and to estimate the effect of vehicle mileage on vehicle price. There is a table which provides all the collected data for this analysis on the "Data" tab.
+
+
+### Data
+<div style="font-size:.9em;color:#888888;">
+</div>
+```{r}
+datatable(CRV2)
+```
+
+
+##
+
+## Analysis {.tabset .tabset-fade}
+
+### Questions & Hypotheses
+
+####Questions:
+**Q1**: Is there a relationship between price and mileage of the vehicle?
+
+**Q2**: If there is a relationship, what is the effect of vehicle mileage on vehicle price?
+
+#### Hypotheses:
+The *hypotheses* for this study concern the slope. If the slope is zero, then there is not a meaningful relationship between the mileage and the price of the vehicles.
+
+$$
+  H_0: \beta_1 = 0
+$$
+$$
+  H_a: \beta_1 \neq 0
+$$
+$$
+  \alpha = 0.05
+$$
+
+A scatter plot of the relationship between mileage and price shows a relatively weak negative trend. 
+```{r}
+plot(Mileage ~ Price, data=CRV2, pch=20, 
+     xlab="Vehicle Mileage (miles)", ylab="Vehicle Price ($)", 
+     main="Honda CRV")
+CRV2.lm <- lm(Mileage ~ Price, data=CRV2)
+abline(CRV2.lm)
+```
+
+####Linear Regression Model:
+If the relationship between vehicle mileage and vehicle price is assumed to be linear than the following mathematical model will accurately depict their relationship.  
+$$
+  \overbrace{Y_i}^{\text{Car Price}} = \underbrace{\overbrace{\beta_0}^{\text{Intercept}} + \overbrace{\beta_1}^{\text{Slope}} \overbrace{X_i}^{\text{Mileage}} \ }_{\text{Regression Relation}} + \epsilon_i
+$$
+**Where:**
+
+$\beta_0$(Intercept) = 54091.8827
+
+$\beta_1$(Slope) = -1.1434
+
+$\epsilon_{i} \sim N(0,\sigma^2)$ is the error term.
+
+
+###Testing & Interpretation
+
+#### T-Test
+```{r}
+pander(summary(CRV2.lm))
+```
+
+#### Interpretation
+
+The above statistcis are the results of a t test of the previously stated hypotheses concerning the slope. The Intercept represents the average car price when it has zero miles (54,092). The Price of -1.143 represents the relationship between vehicle mileage and price. If this previously displayed model is appropriate, then we estimate for every additional mile driven, vehicle price will decrease by approximately $1.14. Given that the p-value(0.005397) is less than the significance level (alpha=.05), we can conlude that there is sufficient evidence suggesting that the slope is different than zero. Or in other words, that there is a meaningful relationship between vehicle mileage and vehicle price. 
+
+
+
+#### Appropriateness of the Regression
+
+A check on the **appropriateness** of the model shows some question regarding correlation of error terms and normality of residuals. Although the *Residuals vs Fitted* graph depicts a fairly linear and constant variance between between *mileage* and *price*, the *Normal QQ* graph shows a signifianct Heavy_Tailed departure from normality. There are also concerns regarding correlation between error terms considering the interesting patterns displayed in the *Residuals vs Order* graph. In conclusion, based on the significant heavy-tailed sway from normality the test results of the analysis are not appropriate. 
+
+```{r, fig.height=3}
+par(mfrow=c(1,3))
+plot(CRV2.lm, which=1:2)
+plot(CRV2.lm$residuals, main="Residuals vs Order", xlab="",
+     ylab="Residuals")
+```
+
+
+##
+
